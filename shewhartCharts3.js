@@ -1,8 +1,8 @@
 
 var localization = {
     en: {
-        title: "Shewhart charts (xbar.one)",
-		navigation: "Shewhart charts (xbar.one)",
+        title: "Shewhart charts (xbar.one/I-MR)",
+		navigation: "Shewhart charts (xbar.one/I-MR)",
 		
 		variableSelcted2: "Variable (observed data) to chart",
 		
@@ -31,7 +31,7 @@ var localization = {
 		
 		nsigmas: "Sigma - number of sigmas to use for computing control limits. It is ignored when the confidence.level argument is provided",
 		confidence_level: "Confidence Level - value between 0 and 1 specifying the confidence level of the computed probability limits",
-		xbarOneStddev: "Xbar chart - Standard deviation method to be used",
+		//xbarOneStddev: "Xbar chart - Standard deviation method to be used",
 		sdWarnLimits: "Add additional limit lines (comma separated) on the plot at the specific std. deviations (e.g. 1.5, 2)",
 		
 		digits: "Digits - number of digits to display",
@@ -61,7 +61,7 @@ var localization = {
 		test8: "K points in a row more than 1σ from center line either side (defualt 8)",
 		
 		help: {
-            title: "Shewhart charts (xbar.one)",
+            title: "Shewhart charts (xbar.one/I-MR)",
             r_help: "help(qcc, package = qcc)",
 			body: `
 				<b>Description</b></br>
@@ -125,7 +125,7 @@ BSkySetSixSigmaTestOptions( test1 = {{selected.test1Chk | safe}}, one.point.k.st
 
 
 chartTypes = c("xbar.one")
-cat("Charts selected:", chartTypes)
+cat("Charts selected:", "I-MR")
 
 #chart type xbar.one
 xbar.one.spc.qcc.objects = NULL
@@ -133,30 +133,57 @@ xbar.one.spc.qcc.objects = NULL
 i=1
 if(trimws(chartTypes) != "") 
 {	
-			BSkyFormat(paste("\nChart Type:", chartTypes[i], "for", c('{{selected.variableSelcted2 | safe}}')))
+			BSkyFormat(paste("\nChart Type:", "I-MR", "for", c('{{selected.variableSelcted2 | safe}}')))
 				
-			xbar.one.spc.qcc.objects = plot.qcc.spc.phases(
-								type = chartTypes[i],
+			xbar.one.IMR.spc.qcc.objects = plot.qcc.spc.phases(
+								type = 'xbar.one',
 								data = c({{dataset.name}}\${{selected.variableSelcted2 | safe}}), 
-								data.name = c('{{selected.variableSelcted2 | safe}}'),  
+								data.name = c('{{selected.variableSelcted2 | safe}}'),
+								chart.title.name = 'I',
+								ylab = "Individual value",
 								newdata=c({{selected.rowsTobeUsedAsNewData | safe}}), 
 								newdata.name = c(),  
 								phases.data.list = phases, 
 								phase.names = {{selected.phaseNames | safe}}, 
                                 nsigmas = c({{selected.nsigmas | safe}}), 
 								confidence.level= c({{selected.confidence_level | safe}}), 
-								std.dev = '{{selected.xbarOneStddev | safe}}',
+								std.dev = 'SD', 
 								digits ={{selected.digits | safe}}, 
 								spec.limits = list(lsl=c({{selected.lower | safe}}), usl= c({{selected.upper | safe}})),
 								additional.sigma.lines = c({{selected.sdWarnLimits| safe}}),
 								mark.test.number = {{selected.markTestNumberChk | safe}}
 								)
+			
+			data.moving.range.R <- matrix(cbind(c({{dataset.name}}\${{selected.variableSelcted2 | safe}})[1:length(c({{dataset.name}}\${{selected.variableSelcted2 | safe}}))-1], 
+			                                    c({{dataset.name}}\${{selected.variableSelcted2 | safe}})[2:length(c({{dataset.name}}\${{selected.variableSelcted2 | safe}}))]), 
+												ncol=2)
+
+			xbar.one.XMR.spc.qcc.objects = plot.qcc.spc.phases(
+								type = 'MR',
+								data = data.moving.range.R, 
+								data.name = c('{{selected.variableSelcted2 | safe}}'),
+								chart.title.name = 'MR',
+								ylab = "Moving range",
+								newdata=c({{selected.rowsTobeUsedAsNewData | safe}}), 
+								newdata.name = c(),  
+								phases.data.list = phases, 
+								phase.names = {{selected.phaseNames | safe}}, 
+                                nsigmas = c({{selected.nsigmas | safe}}), 
+								confidence.level= c({{selected.confidence_level | safe}}), 
+								std.dev = 'UWAVE-R', 
+								digits ={{selected.digits | safe}}, 
+								spec.limits = list(lsl=c({{selected.lower | safe}}), usl= c({{selected.upper | safe}})),
+								additional.sigma.lines = c({{selected.sdWarnLimits| safe}}),
+								mark.test.number = {{selected.markTestNumberChk | safe}}
+								)
+								
 }
 
 
-if(!is.null(xbar.one.spc.qcc.objects))
+if(!is.null(xbar.one.IMR.spc.qcc.objects))
 {
-			print.qcc.spc.phases(qcc.spc.phases.obects = xbar.one.spc.qcc.objects,
+			print.qcc.spc.phases(qcc.spc.phases.obects = xbar.one.IMR.spc.qcc.objects,
+									chart.title.name = 'I',
 									print.stats = {{selected.printStatChk | safe}}, 
 									print.test.summary = {{selected.printTestSummaryChk | safe}}, 
 									print.test.detail = {{selected.printTestDetailChk | safe}},
@@ -164,6 +191,19 @@ if(!is.null(xbar.one.spc.qcc.objects))
 									digits = {{selected.digits | safe}}, 
 									phase.names = {{selected.phaseNames | safe}}
 								)
+								
+			if(!is.null(xbar.one.XMR.spc.qcc.objects))
+			{
+				print.qcc.spc.phases(qcc.spc.phases.obects = xbar.one.XMR.spc.qcc.objects,
+										chart.title.name = 'MR',
+										print.stats = {{selected.printStatChk | safe}}, 
+										print.test.summary = {{selected.printTestSummaryChk | safe}}, 
+										print.test.detail = {{selected.printTestDetailChk | safe}},
+										print.qcc.object.summary = {{selected.printObjectSummaryChk | safe}},
+										digits = {{selected.digits | safe}}, 
+										phase.names = {{selected.phaseNames | safe}}
+									)
+			}									
 									
 }
 
@@ -471,6 +511,7 @@ if(!is.null(xbar.one.spc.qcc.objects))
 					width: "w-25",
                 })
             },
+			/*
 			xbarOneStddev: {
                 el: new selectVar(config, {
                     no: 'xbarOneStddev',
@@ -483,6 +524,7 @@ if(!is.null(xbar.one.spc.qcc.objects))
 					//width: "w-25",
                 })
             },
+			*/
 			sdWarnLimits: {
                 el: new input(config, {
                     no: 'sdWarnLimits',
@@ -763,7 +805,7 @@ if(!is.null(xbar.one.spc.qcc.objects))
 					
 					objects.nsigmas.el.content,
 					objects.confidence_level.el.content,
-					objects.xbarOneStddev.el.content,
+					//objects.xbarOneStddev.el.content,
 					
 					//objects.processCapabilityChk.el.content,
 					objects.upper.el.content,

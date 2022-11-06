@@ -14,7 +14,7 @@ var localization = {
 		tolerance: "Tolerance - numeric value for the tolerance - default (usl - lsl)",
 		alphaLim: "Alpha - Limit to take into account interaction",
 		errorTerm: "Which term of the model should be used as error term (for the model with interation)",
-		method: "Type of analysis to perform, crossed (default) or nested",
+		//method: "Type of analysis to perform, crossed (default) or nested",
 		
 		help: {
             title: "Gage R&R - Measurement System Analysis",
@@ -61,7 +61,7 @@ require(SixSigma)
 			  alphaLim = c({{selected.alphaLim | safe}}),
 			  errorTerm = "{{selected.errorTerm | safe}}",
 			  digits = BSkyGetDecimalDigitSetting(),
-			  method = "{{selected.method | safe}}",
+			  method = "crossed",
 			  print_plot = TRUE,
 			  signifstars = FALSE
 			)
@@ -206,18 +206,19 @@ require(SixSigma)
                     value: "interaction",
                 })
             },
+			/*
 			method: {
-                el: new input(config, {
+                el: new selectVar(config, {
                     no: 'method',
                     label: localization.en.method,
-                    placeholder: "",
+                    multiple: false,
                     required: true,
-                    type: "character",
-                    extraction: "TextAsIs",
-					allow_spaces:true,
-                    value: "crossed",
+                    extraction: "NoPrefix|UseComma",
+					options: ["crossed", "nested"],
+                    default: "crossed",
                 })
             },
+			*/
         };
 		
         const content = {
@@ -232,8 +233,8 @@ require(SixSigma)
 					objects.tolerance.el.content,
 					objects.sigma.el.content,
 					objects.alphaLim.el.content,
-					objects.errorTerm.el.content,
-					objects.method.el.content],
+					objects.errorTerm.el.content],
+					//objects.method.el.content],
             nav: {
                 name: localization.en.navigation,
                 icon: "icon-sixsigma",

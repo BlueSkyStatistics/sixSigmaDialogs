@@ -3,8 +3,14 @@ var localization = {
     en: {
         title: "Pareto Chart",
 		navigation: "Pareto Chart",
+		
+		label1: "Two options - Long format (default) i.e. defects and counts in vertical columns and Wide format i.e. defects as column names and counts as row",
+		selectLongRad: "Option 1: Long format - choose defects category and defect counts",
+		selectWideRad: "Option 2: Wide format - Columns names will be used as defects category and 1st row (default) will be used as counts",
+		rownumForCounts: "Row number (default 1st row) to be used for counts",
+		
 		mainTitle: "Chart Title",
-		defects: "Variable(e.g. defects) to plot",
+		defects: "Variable (e.g. defects) to plot",
 		counts: "Variable to use as counts to plot",
         xlab: "A string specifying the label for the x-axis",
         ylab: "A string specifying the label for the y-axis",
@@ -45,8 +51,16 @@ require(qcc)
 defectsFreq = NULL
 xstats = NULL
 
-defectsFreq = as.numeric({{dataset.name}}[,c({{selected.counts | safe}})])
-names(defectsFreq) = as.character({{dataset.name}}[,c({{selected.defects | safe}})])
+{{if(options.selected.gpbox1 === 'long')}}
+	BSkyFormat("\nInput data is in long format\n")
+	defectsFreq = as.numeric({{dataset.name}}[,c({{selected.counts | safe}})])
+	names(defectsFreq) = as.character({{dataset.name}}[,c({{selected.defects | safe}})])
+{{#else}}
+	BSkyFormat("\nInput data is in wide format\n")
+	defectsFreq = as.numeric({{dataset.name}}[c({{selected.rownumForCounts | safe}}),])
+	names(defectsFreq) = names({{dataset.name}})
+{{/if}}
+
 
 s_defectsFreq = sort(defectsFreq, decreasing = TRUE)
 xstats = rbind(s_defectsFreq, cumsum(s_defectsFreq))
@@ -66,6 +80,47 @@ dimnames(xstats)[[1]] = c("Count", "Cum Count", "Percent", "Cum %")
         };
         var objects = {
             content_var: { el: new srcVariableList(config, {action: "move"}) },
+			label1: { 
+				el: new labelVar(config, { 
+					label: localization.en.label1, 
+					h: 6, 
+					style: "mb-2",
+				}) 
+			},
+			selectLongRad: {
+                el: new radioButton(config, {
+                    label: localization.en.selectLongRad,
+                    no: "gpbox1",
+                    increment: "selectLongRad",
+                    value: "long",
+                    state: "checked",
+					//style: "mb-3",
+                    extraction: "ValueAsIs",
+                })
+            },
+			selectWideRad: {
+                el: new radioButton(config, {
+                    label: localization.en.selectWideRad,
+                    no: "gpbox1",
+                    increment: "selectWideRad",
+                    value: "wide",
+                    state: "",
+                    extraction: "ValueAsIs",
+                })
+            },
+			rownumForCounts: {
+                el: new inputSpinner(config, {
+                    no: 'rownumForCounts',
+                    label: localization.en.rownumForCounts,
+                    required: true,
+                    min: 1,
+                    max: 99999,
+                    step: 1,
+                    value: 1,
+					style:"ml-3",
+                })
+            },  
+			
 			mainTitle: {
                 el: new input(config, {
                     no: 'mainTitle',
@@ -82,7 +137,7 @@ dimnames(xstats)[[1]] = c("Count", "Cum Count", "Percent", "Cum %")
                 el: new dstVariable(config, {
                     label: localization.en.defects,
                     no: "defects",
-                    required: true,
+                    //required: true,
                     filter: "String|Numeric|Logical|Ordinal|Nominal|Scale",
                     extraction: "NoPrefix|Enclosed",
                 }), r: ['{{ var | safe}}']
@@ -91,7 +146,7 @@ dimnames(xstats)[[1]] = c("Count", "Cum Count", "Percent", "Cum %")
                 el: new dstVariable(config, {
                     label: localization.en.counts,
                     no: "counts",
-                    required: true,
+                    //required: true,
                     filter: "String|Numeric|Logical|Ordinal|Nominal|Scale",
                     extraction: "NoPrefix|Enclosed|Comma",
                 }), r: ['{{ var | safe}}']
@@ -160,9 +215,16 @@ dimnames(xstats)[[1]] = c("Count", "Cum Count", "Percent", "Cum %")
         };
         const content = {
             left: [objects.content_var.el.content],
-            right: [objects.mainTitle.el.content, 
+            right: [objects.label1.el.content, 
+					objects.selectLongRad.el.content,
+					
 					objects.defects.el.content,
 					objects.counts.el.content,
+					
+					objects.selectWideRad.el.content,
+					objects.rownumForCounts.el.content,
+					
+					objects.mainTitle.el.content, 
 					objects.xlab.el.content,
 					objects.ylab.el.content,
 					objects.ylab2.el.content,

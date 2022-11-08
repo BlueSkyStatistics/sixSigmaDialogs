@@ -123,15 +123,14 @@ class lossFunctionAnalysis extends baseModal {
                 })
             },
 			lfaOutput: {
-                el: new input(config, {
+                el: new selectVar(config, {
                     no: 'lfaOutput',
                     label: localization.en.lfaOutput,
-                    placeholder: "",
+                    multiple: false,
                     required: true,
-                    type: "character",
-                    extraction: "TextAsIs",
-					allow_spaces:true,
-                    value: "plot",
+                    extraction: "NoPrefix|UseComma",
+					options: ["plot", "text", "both"],
+                    default: "plot",
                 })
             },
         };

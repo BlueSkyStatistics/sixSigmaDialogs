@@ -70,20 +70,21 @@ class processCapabilityQcc extends baseModal {
             RCode:`
 require(qcc)
 
-
 	selectedData = NULL
 	qccXOneOverall = NULL
 	qccXPotential = NULL 
 	qccXOnePotential = NULL
 	sample_size = 1
+	
+	
+{{if(options.selected.lower === 'NA' && options.selected.upper === 'NA')}}
+	BSkyFormat("\nError: LSL or USL or both must be specified\n")
 
-	if(is.na({{selected.lower | safe}}) && is.na({{selected.upper | safe}})){
-		BSkyFormat("\nError: LSL or USL or both must be specified")
-	}
+{{#else}}
 
 	if(c('{{selected.gpbox1 | safe}}') == "variable"){
 		
-		data_name = '{{selected.variableSelcted | safe}}'
+		data_name = '{{selected.variableSelcted | safe}}{{if(options.selected.rowsTobeUsed !== "")}} [c({{selected.rowsTobeUsed | safe}})] {{/if}}'
 		
 		if(length(trimws(c({{selected.variableControlLimits | safe}}))) != 0){
 			
@@ -97,24 +98,39 @@ require(qcc)
 				
 				sample_size = dim(selectedData_variable_control_limit)[2]
 				
-				selectedData_variable_control_limitNonNAs = selectedData_variable_control_limit[{{selected.rowsTobeUsed | safe}}]
+				selectedData_variable_control_limitNonNAs = selectedData_variable_control_limit[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}), {{/if}}]
 				selectedData_variable_control_limitNonNAs = selectedData_variable_control_limitNonNAs[!is.na(selectedData_variable_control_limitNonNAs)]
-				qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar.one", std.dev = "SD", data = selectedData_variable_control_limitNonNAs, nsigmas = c({{selected.nsigmas | safe}})))
-			
-				qccXPotential = qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar", std.dev = '{{selected.stddev | safe}}', data = selectedData_variable_control_limit[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}}) {{selected.confidence_level | safe}})
+				
+				qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+														type="xbar.one", std.dev = "SD", 
+														data = selectedData_variable_control_limitNonNAs, 
+														data.name = paste(data_name, "( variable sample size of ",sample_size, ")"),
+														nsigmas = c({{selected.nsigmas | safe}})))
+				
+				qccXPotential = qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+									type="xbar", std.dev = '{{selected.stddev | safe}}', 
+									data = selectedData_variable_control_limit[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}), {{/if}}], 
+									data.name = paste(data_name, "( variable sample size of ",sample_size, ")"),
+									nsigmas = c({{selected.nsigmas | safe}}) {{selected.confidence_level | safe}})
 			
 			}else{
 				selectedData_variable_control_limit = with({{dataset.name}}, c({{selected.variableSelcted | safe}})[-c({{selected.variableControlLimits | safe}})])
-				if(c('{{selected.rowsTobeUsed | safe}}') != ''){
-					qccXOnePotential = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar.one", std.dev = "MR", data = selectedData_variable_control_limit[c({{selected.rowsTobeUsed | safe}} c())], nsigmas = c({{selected.nsigmas | safe}}))) 
-				}else
-				{
-					qccXOnePotential = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar.one", std.dev = "MR", data = selectedData_variable_control_limit[], nsigmas = c({{selected.nsigmas | safe}})))
-				}
+				
+				sample_size = 1
+				
+				qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+																type="xbar.one", std.dev = "SD", 
+																data = selectedData_variable_control_limit[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}) {{/if}}], 
+																data.name = paste(data_name, "( sample size of ",sample_size, ")"),
+																nsigmas = c({{selected.nsigmas | safe}})))
+				
+				qccXOnePotential = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+															type="xbar.one", std.dev = "MR", 
+															data = selectedData_variable_control_limit[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}) {{/if}}], 
+															data.name = paste(data_name, "( sample size of ",sample_size, ")"),
+															nsigmas = c({{selected.nsigmas | safe}}))) 
 			}
 		}else{
-			qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar.one", std.dev = "SD", data = c({{selected.variableSelcted | safe}})[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}})))
-
 			if(trimws('{{selected.groupingVariable | safe}}') != ""){
 				selectedData = with({{dataset.name}}, qcc::qcc.groups(c({{selected.variableSelcted | safe}}), c({{selected.groupingVariable | safe}})))
 			
@@ -125,13 +141,35 @@ require(qcc)
 					BSkyLoadRefresh('{{selected.variableSelcted | safe}}Gpd')
 				}
 				
-				qccXPotential = qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar", std.dev = '{{selected.stddev | safe}}', data = selectedData[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}})) 
+				qccXOneOverall = qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+									type="xbar.one", std.dev = 'SD', 
+									data = unlist(selectedData[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}), {{/if}}]), 
+									data.name = paste(data_name, "( sample size of ",sample_size, ")"),								
+									nsigmas = c({{selected.nsigmas | safe}})) 
+				
+				qccXPotential = qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+									type="xbar", std.dev = '{{selected.stddev | safe}}', 
+									data = selectedData[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}), {{/if}}], 
+									data.name = paste(data_name, "( sample size of ",sample_size, ")"),
+									nsigmas = c({{selected.nsigmas | safe}})) 
 			}else{
-				qccXOnePotential = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar.one", std.dev = "MR", data = c({{selected.variableSelcted | safe}})[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}})))
+				sample_size = 1
+				
+				qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+															type="xbar.one", std.dev = "SD", 
+															data = c({{selected.variableSelcted | safe}})[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}) {{/if}}], 
+															data.name = paste(data_name, "( sample size of ",sample_size, ")"),
+															nsigmas = c({{selected.nsigmas | safe}})))
+				
+				qccXOnePotential = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+															type="xbar.one", std.dev = "MR", 
+															data = c({{selected.variableSelcted | safe}})[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}) {{/if}}], 
+															data.name = paste(data_name, "( sample size of ",sample_size, ")"),
+															nsigmas = c({{selected.nsigmas | safe}})))
 			}
 		}
 	}else{
-		data_name = '{{dataset.name}}'
+		data_name = '{{dataset.name}}{{if(options.selected.rowsTobeUsed !== "")}} [c({{selected.rowsTobeUsed | safe}}),] {{/if}}'
 		
 		if(length(c({{selected.variablelistSelcted | safe}})) == 0){
 			selectedData = {{dataset.name}}[]
@@ -141,9 +179,17 @@ require(qcc)
 		
 		sample_size = dim(selectedData)[2]
 		
-		qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, type="xbar.one", std.dev = "SD", data = selectedData[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}})))
+		qccXOneOverall = with({{dataset.name}}, qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+													type="xbar.one", std.dev = "SD", 
+													data = selectedData[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}), {{/if}}], 
+													data.name = paste(data_name, "( sample size of ",sample_size, ")"),
+													nsigmas = c({{selected.nsigmas | safe}})))
 
-		qccXPotential = qcc::qcc(plot = FALSE,  rules = c(), type="xbar", digits = {{selected.digits | safe}}, std.dev = '{{selected.stddev | safe}}', data = selectedData[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}}))
+		qccXPotential = qcc::qcc(plot = FALSE,  rules = c(), digits = {{selected.digits | safe}}, 
+							type="xbar", std.dev = '{{selected.stddev | safe}}', 
+							data = selectedData[{{if(options.selected.rowsTobeUsed !== "")}} c({{selected.rowsTobeUsed | safe}}), {{/if}}], 
+							data.name = paste(data_name, "( sample size of ",sample_size, ")"),															
+							nsigmas = c({{selected.nsigmas | safe}}))
 	}
 	
 	
@@ -157,7 +203,7 @@ require(qcc)
 		BSkyFormat(paste("Potential (Within) Process Capability Indices for ", data_name, "( sample size of ",sample_size, ")"))
 		process.capability.enhanced(qccXPotential {{selected.confidence_level | safe}}, digits = {{selected.digits | safe}}, nsigmas = c({{selected.nsigmas | safe}}), print = TRUE, capability.type = "potential", spec.limits=c(c({{selected.lower | safe}}),c({{selected.upper | safe}})) {{selected.target | safe}})
 	}else{
-		BSkyFormat(paste("Potential Process Capability Indices for ", data_name, "( sample size of ",sample_size, ")"))
+		BSkyFormat(paste("Potential (Within) Process Capability Indices for ", data_name, "( sample size of ",sample_size, ")"))
 		process.capability.enhanced(qccXOnePotential {{selected.confidence_level | safe}}, digits = {{selected.digits | safe}}, nsigmas = c({{selected.nsigmas | safe}}), print = TRUE, capability.type = "potential", spec.limits=c(c({{selected.lower | safe}}),c({{selected.upper | safe}})) {{selected.target | safe}})
 	}
 	
@@ -174,7 +220,9 @@ require(qcc)
 		BSkyFormat(paste("xbar.one Chart Used for Computing Potential Process Capability Indices for ", data_name, "(sample size of ",sample_size, ")"))
 		plot(qccXOnePotential, digits = {{selected.digits | safe}})
 	}
-	
+
+{{/if}}
+
 `
         };
         var objects = {
@@ -297,8 +345,8 @@ require(qcc)
 					//style: "ml-5",
                     extraction: "TextAsIs",
 					allow_spaces:true,
-                    //value: "",
-					wrapped: 'c(%val%) , ',
+                    value: "",
+					//wrapped: 'c(%val%) ',
                 })
             },
 			nsigmas: {

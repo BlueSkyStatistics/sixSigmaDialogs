@@ -805,8 +805,8 @@ if({{selected.ocCurvesChk | safe}} && length(trimws(c({{selected.variableControl
                     label: localization.en.xbarStddev,
                     multiple: false,
                     extraction: "NoPrefix|UseComma",
-                    options: ["RMSDF", "UWAVE-R", "UWAVE-SD", "MVLUE-R", "MVLUE-SD"],
-                    default: "RMSDF",
+                    options: ["UWAVE-SD", "RMSDF", "UWAVE-R",  "MVLUE-R", "MVLUE-SD"],
+                    default: "UWAVE-SD",
 					//style: "mb-3",
 					//width: "w-25",
                 })

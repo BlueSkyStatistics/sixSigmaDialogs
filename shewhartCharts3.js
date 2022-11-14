@@ -102,8 +102,12 @@ BSkySetSixSigmaTestOptions( test1 = {{selected.test1Chk | safe}}, one.point.k.st
 							digits = {{selected.digits | safe}})
 chartTypes = c("xbar.one")
 cat("Charts selected:", "I-MR")
+
 #chart type xbar.one
-xbar.one.spc.qcc.objects = NULL
+xbar.one.IMR.spc.qcc.objects = NULL
+data.moving.range.R = NULL
+xbar.one.XMR.spc.qcc.objects = NULL
+
 i=1
 if(trimws(chartTypes) != "") 
 {	

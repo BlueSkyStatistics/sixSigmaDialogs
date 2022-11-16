@@ -21,7 +21,8 @@ const nav = {
             "children": [
                 "./shewhartCharts1",
                 "./shewhartCharts2",
-                "./shewhartCharts3"
+                "./shewhartCharts3",
+                "./shewhartCharts4"
             ]
         },
         "./cusumChart",	

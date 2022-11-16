@@ -16,6 +16,8 @@ var localization = {
 		selectDatasetRad: "Option 2: Select the variables from the Dataset if already grouped",
 		variablelistSelcted: "Select one or more grouped variables (observed data) to chart", 
 		
+		showMRChartChk: "Show the MR chart of subgroup means",
+		
 		printStatChk: "Print stats in addition to charts",
 		printObjectSummaryChk: "Print QCC object summary",
 		printTestSummaryChk: "Print summary from the tests for special causes",
@@ -241,6 +243,10 @@ if(trimws(chartTypes) != "")
 								mark.test.number = {{selected.markTestNumberChk | safe}}
 								)
 			
+			
+		
+		{{if(options.selected.showMRChartChk === 'TRUE')}}
+	
 			data.moving.range.R <- matrix(cbind(c(selectedData[,c("gpMean")])[1:length(selectedData[,c("gpMean")])-1], 
 			                                    c(selectedData[,c("gpMean")])[2:length(selectedData[,c("gpMean")])]), 
 												ncol=2)
@@ -263,7 +269,8 @@ if(trimws(chartTypes) != "")
 								additional.sigma.lines = c({{selected.sdWarnLimits| safe}}),
 								mark.test.number = {{selected.markTestNumberChk | safe}}
 								)
-			
+		{{/if}}
+		
 			S.spc.qcc.objects = plot.qcc.spc.phases(
 								type = 'S',
 								data = selectedData[, colnames(selectedData)!= c("gpMean")], 
@@ -297,7 +304,9 @@ if(!is.null(xbar.one.IMR.spc.qcc.objects))
 									digits = {{selected.digits | safe}}, 
 									phase.names = {{selected.phaseNames | safe}}
 								)
-								
+		
+		{{if(options.selected.showMRChartChk === 'TRUE')}}
+		
 			if(!is.null(xbar.one.XMR.spc.qcc.objects))
 			{
 				print.qcc.spc.phases(qcc.spc.phases.obects = xbar.one.XMR.spc.qcc.objects,
@@ -311,7 +320,8 @@ if(!is.null(xbar.one.IMR.spc.qcc.objects))
 									)
 			}	
 			
-			
+		{{/if}}
+		
 			if(!is.null(S.spc.qcc.objects))
 			{
 				print.qcc.spc.phases(qcc.spc.phases.obects = S.spc.qcc.objects,
@@ -472,6 +482,17 @@ if(!is.null(xbar.one.IMR.spc.qcc.objects))
                     value: "",
                 })
             },
+			
+			showMRChartChk: {
+                el: new checkbox(config, {
+                    label: localization.en.showMRChartChk, 
+					no: "showMRChartChk",
+                    extraction: "Boolean",
+					state: "checked",
+					newline: true,
+                })
+            },
+			
 			printStatChk: {
                 el: new checkbox(config, {
                     label: localization.en.printStatChk, 
@@ -1080,6 +1101,8 @@ if(!is.null(xbar.one.IMR.spc.qcc.objects))
 					
 					objects.selectDatasetRad.el.content,
 					objects.variablelistSelcted.el.content,
+					
+					objects.showMRChartChk.el.content,
 					
 					objects.nsigmas.el.content,
 					objects.confidence_level.el.content,

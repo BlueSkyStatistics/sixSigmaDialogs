@@ -2,7 +2,7 @@
 var localization = {
     en: {
         title: "Process Capability (qcc pkg)",
-		navigation: "Process Capability(qcc)",
+		navigation: "Process Capability(qcc pkg)",
 		
 		//chartTypeXbarChk: "xbar chart",
 		

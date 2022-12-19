@@ -6,7 +6,14 @@ const nav = {
         "./createCauseEffectDiagram",
         "./paretoChart",
         "./lossFunctionAnalysis",
-        "./gageRnR(MSA)",
+        {
+            "name": "MSA",
+            "icon": "icon-sixsigma",
+            "children": [
+                "./gageRnR(MSA)",
+                "./AttributeAgreement"
+            ]
+        },
         {
             "name": "Process Capability",
             "icon": "icon-sixsigma",

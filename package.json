@@ -4,7 +4,7 @@
     "description": "BlueSky Statistics Model Fitting dialogs",
     "keywords": [],
     "main": "nav.js",
-    "version": "1.0.9",
+    "version": "1.1.0",
     "author": "BlueSky Statistics",
     "scripts": {},
     "dependencies": {

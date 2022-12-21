@@ -145,56 +145,71 @@ modified.kappam.fleiss <- function (ratings, exact = FALSE, detail = FALSE, leve
 agreementCI <- function(response_df, alpha = 0.95)
 {
 	#Rows with all matched
-	m = dim(response_df[apply(response_df, 1, function(row) length(unique(row)) == 1),])[1] 
-	
-	#N is sample size
-	N = dim(response_df)[1] 
 
-	v1 = 2*m 
-	v2 = 2*(N - m + 1) 
-	
-	  if(m == N)
-	  {
+	matched_rows = response_df[apply(response_df, 1, function(row) length(unique(row)) == 1),]
+
+	if(!is.matrix(matched_rows) && !is.data.frame(matched_rows))
+	{
+		# m = dim(matrix(matched_rows, ncol = dim(response_df)[2]))[1]
+		m = 1
+	}
+	else
+	{
+		m = dim(matched_rows)[1]
+	}
+
+		#N is sample size
+		N = dim(response_df)[1]
+
+		v1 = 2*m
+		v2 = 2*(N - m + 1)
+
+	if(m == N)
+	{
 		alphaL = (1-alpha)
-			alphaU = alpha 
-		qfl = qf(alphaL, df1=v1, df2=v2) 
-			LL = (v1* qfl)/(v2 + v1*qfl)
-	  }
-	  else if(m !=0)
-	  {
+		alphaU = alpha
+
+		qfl = qf(alphaL, df1=v1, df2=v2)
+
+		LL = (v1* qfl)/(v2 + v1*qfl)
+	}
+	else if(m !=0)
+	{
 		alphaL = (1-alpha)/2
-			alphaU = alpha + (1-alpha)/2
-		qfl = qf(alphaL, df1=v1, df2=v2) 
-			LL = (v1* qfl)/(v2 + v1*qfl)
-	  }
-	  else
-	  {
+		alphaU = alpha + (1-alpha)/2
+
+		qfl = qf(alphaL, df1=v1, df2=v2)
+
+		LL = (v1* qfl)/(v2 + v1*qfl)
+	}
+	else
+	{
 		LL = 0
-	  }
-	
+	}
 
-	v1 = 2*(m + 1) 
-	v2 = 2*(N - m)
-  
-	  if(m == N)
-	  {
+
+		v1 = 2*(m + 1)
+		v2 = 2*(N - m)
+
+	if(m == N)
+	{
 		UL = 1
-	  }
-	  else if(m == 0)
-	  {
+	}
+	else if(m == 0)
+	{
 		alphaL = (1-alpha)
-			alphaU = alpha 
+		alphaU = alpha
 		qfu = qf(alphaU, df1=v1, df2=v2)
-			UL = (v1* qfu)/(v2 + v1*qfu)
-	  }
-	  else
-	  {
+		UL = (v1* qfu)/(v2 + v1*qfu)
+	}
+	else
+	{
 		alphaL = (1-alpha)/2
-			alphaU = alpha + (1-alpha)/2
+		alphaU = alpha + (1-alpha)/2
 		qfu = qf(alphaU, df1=v1, df2=v2)
-			UL = (v1* qfu)/(v2 + v1*qfu)
-	  }
-	
+		UL = (v1* qfu)/(v2 + v1*qfu)
+	}
+
 	invisible(return(c(m=m,N=N,LL=LL,UL=UL)))
 }
 

@@ -301,7 +301,7 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 		
 		withinAgreement = rbind(withinAgreement, c(operator[i], CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100))
 		
-		dimnames(withinAgreement)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+		dimnames(withinAgreement)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
 		
 		kappam_fleiss = (modified.kappam.fleiss(resp_mat[[i]], detail=TRUE, levels = response_levels))$detail
 		kappam_fleiss = cbind(Operator=c(operator[i], rep("",dim(kappam_fleiss)[1]-1)), Response = dimnames(kappam_fleiss)[[1]], kappam_fleiss)
@@ -321,7 +321,7 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 			CI_stat = agreementCI(response_df = resp_mat[[i]], alpha = alpha)
 		
 			withinAgreement_reference = rbind(withinAgreement_reference, c(operator[i], CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100))
-			dimnames(withinAgreement_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+			dimnames(withinAgreement_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
 			
 			kappam_fleiss = (modified.kappam.fleiss(resp_mat[[i]], detail=TRUE, levels = orig_reference_levels))$detail
 			kappam_fleiss = cbind(Operator=c(operator[i], rep("",dim(kappam_fleiss)[1]-1)), Response = dimnames(kappam_fleiss)[[1]], kappam_fleiss)
@@ -340,7 +340,7 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 	
 	CI_stat = agreementCI(response_df = between_agreement_response_mat, alpha = alpha)
 	between_agreement_mat = matrix(c("All", CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100), nrow = 1)
-	dimnames(between_agreement_mat)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+	dimnames(between_agreement_mat)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
 
 	kappam_fleiss_all = (modified.kappam.fleiss(between_agreement_response_mat, detail=TRUE, levels = response_levels))$detail
 	kappam_fleiss_mat_all = cbind(Operator=c("All", rep("",dim(kappam_fleiss_all)[1]-1)), Response = dimnames(kappam_fleiss_all)[[1]], kappam_fleiss_all)
@@ -359,7 +359,7 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 	
 		CI_stat = agreementCI(response_df = between_agreement_response_mat, alpha = alpha)
 		between_agreement_mat_reference = matrix(c("All", CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100), nrow = 1)
-		dimnames(between_agreement_mat_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+		dimnames(between_agreement_mat_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
 
 		kappam_fleiss_all_reference = (modified.kappam.fleiss(between_agreement_response_mat, detail=TRUE, levels = orig_reference_levels))$detail
 		kappam_fleiss_mat_all_reference = cbind(Operator=c("All", rep("",dim(kappam_fleiss_all_reference)[1]-1)), Response = dimnames(kappam_fleiss_all_reference)[[1]], kappam_fleiss_all_reference)

@@ -141,6 +141,94 @@ modified.kappam.fleiss <- function (ratings, exact = FALSE, detail = FALSE, leve
     return(rval)
 }
 
+disagreementStat <- function(response_df)
+{
+	#print(response_df)
+	
+	first_level_matched = 0
+	second_level_matched = 0
+	
+	#N is sample size
+	N = dim(response_df)[1]
+	
+	level_reference = levels(response_df$Reference)
+
+	#matched_rows = response_df[apply(response_df, 1, function(row) length(unique(row)) == 1),]
+	
+	#Rows with all matched
+	
+	apply(response_df, 1, 
+		function(row) 
+		{
+			if((length(unique(row[1:(length(row)-1)])) == 1) && unique(row[1:(length(row)-1)]) == level_reference[1] && row[length(row)] != level_reference[1] )
+			{
+				first_level_matched <<- first_level_matched + 1
+			}
+			
+			if((length(unique(row[1:(length(row)-1)])) == 1) && unique(row[1:(length(row)-1)]) == level_reference[2] && row[length(row)] != level_reference[2])
+			{
+				second_level_matched <<- second_level_matched + 1
+			}
+		} 
+	)
+	
+	
+	mixed_disageement_rows = response_df[apply(response_df, 1, function(row) length(unique(row[1:(length(row)-1)])) != 1),]
+
+	if(!is.matrix(mixed_disageement_rows) && !is.data.frame(mixed_disageement_rows))
+	{
+		m = 0
+		if(length(mixed_disageement_rows) > 0)
+			m = 1
+	}
+	else
+	{
+		m = dim(mixed_disageement_rows)[1]
+	}
+	
+	#print(c(first_level_matched, (first_level_matched/N)*100, second_level_matched, (second_level_matched/N)*100, m, (m/N)*100 ))															
+
+	invisible(return(c(first_level_matched, (first_level_matched/N)*100, second_level_matched, (second_level_matched/N)*100, m, (m/N)*100 )))															
+
+}
+
+summaryDisagreement <- function(response_list, reference)
+{
+	reference = as.character(reference)
+	samples = length(reference)
+	
+	#print(response_list)
+	#print(reference)
+	
+	disagreement_df = data.frame(Sample = seq(1:samples), Standard = reference)
+	
+	lapply(response_list, 
+		function(op_response)
+		{
+			all_count = c()
+			all_percent = c()
+			
+			for(i in 1:samples)
+			{
+				count = length(which(op_response[i,] != reference[i]))
+				percent = count/(length(op_response[i,]))*100
+				all_count = c(all_count, count)
+				all_percent = c(all_percent, percent)
+			}
+			
+			disagreement_df <<- cbind(disagreement_df, all_count, all_percent)
+		}
+	)
+	
+	count_pct_columns = rep(c("Count", "Percent"), length(response_list))
+	disagreement_df = rbind(c("Sample", "Standard", count_pct_columns), disagreement_df)
+	 
+	col_names = c(" ", " ", rep(names(response_list), each=2))
+	dimnames(disagreement_df)[[2]] = col_names
+	rownames(disagreement_df) = NULL 
+	
+	invisible(return(disagreement_df))
+}
 
 agreementCI <- function(response_df, alpha = 0.95)
 {
@@ -275,6 +363,10 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 	j = 1
 	withinAgreement = c()
 	withinAgreement_reference = c()
+	
+	disagreement_reference = c()
+	summaryDisagreement_reference = c()
+	
 	kappam_fleiss_mat = c()
 	kappam_fleiss_mat_reference = c()
 
@@ -301,7 +393,7 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 		
 		withinAgreement = rbind(withinAgreement, c(operator[i], CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100))
 		
-		dimnames(withinAgreement)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+		dimnames(withinAgreement)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(format(round(alpha, 2), nsmall = 2),"CI (lower)"), paste(format(round(alpha, 2), nsmall = 2),"CI (upper)"))
 		
 		kappam_fleiss = (modified.kappam.fleiss(resp_mat[[i]], detail=TRUE, levels = response_levels))$detail
 		kappam_fleiss = cbind(Operator=c(operator[i], rep("",dim(kappam_fleiss)[1]-1)), Response = dimnames(kappam_fleiss)[[1]], kappam_fleiss)
@@ -321,12 +413,24 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 			CI_stat = agreementCI(response_df = resp_mat[[i]], alpha = alpha)
 		
 			withinAgreement_reference = rbind(withinAgreement_reference, c(operator[i], CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100))
-			dimnames(withinAgreement_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+			dimnames(withinAgreement_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(format(round(alpha, 2), nsmall = 2),"CI (lower)"), paste(format(round(alpha, 2), nsmall = 2),"CI (upper)"))
 			
 			kappam_fleiss = (modified.kappam.fleiss(resp_mat[[i]], detail=TRUE, levels = orig_reference_levels))$detail
 			kappam_fleiss = cbind(Operator=c(operator[i], rep("",dim(kappam_fleiss)[1]-1)), Response = dimnames(kappam_fleiss)[[1]], kappam_fleiss)
 			rownames(kappam_fleiss) = NULL
 			kappam_fleiss_mat_reference = rbind(kappam_fleiss_mat_reference, kappam_fleiss )
+			
+			if(length(orig_reference_levels) == 2)
+			{
+				disagreement_stat = disagreementStat(response_df = resp_mat[[i]])
+				disagreement_reference = rbind(disagreement_reference, c(operator[i], disagreement_stat))
+				dimnames(disagreement_reference)[[2]] = c("Operator", 
+																paste("# ",orig_reference_levels[1],"/",orig_reference_levels[2], sep=""), 
+																"Percent", 
+																paste("# ",orig_reference_levels[2],"/",orig_reference_levels[1], sep=""),
+																"Percent",
+																"# Mixed", "Percent")
+			}
 		}
 		
 		j = j + observations_per_op
@@ -340,7 +444,7 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 	
 	CI_stat = agreementCI(response_df = between_agreement_response_mat, alpha = alpha)
 	between_agreement_mat = matrix(c("All", CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100), nrow = 1)
-	dimnames(between_agreement_mat)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+	dimnames(between_agreement_mat)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(format(round(alpha, 2), nsmall = 2),"CI (lower)"), paste(format(round(alpha, 2), nsmall = 2),"CI (upper)"))
 
 	kappam_fleiss_all = (modified.kappam.fleiss(between_agreement_response_mat, detail=TRUE, levels = response_levels))$detail
 	kappam_fleiss_mat_all = cbind(Operator=c("All", rep("",dim(kappam_fleiss_all)[1]-1)), Response = dimnames(kappam_fleiss_all)[[1]], kappam_fleiss_all)
@@ -356,14 +460,19 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
   
 		between_agreement_response_mat[,dim(between_agreement_response_mat)[2]] = factor(between_agreement_response_mat[,dim(between_agreement_response_mat)[2]])
 		levels(between_agreement_response_mat[,dim(between_agreement_response_mat)[2]]) = orig_reference_levels
-	
+		
 		CI_stat = agreementCI(response_df = between_agreement_response_mat, alpha = alpha)
 		between_agreement_mat_reference = matrix(c("All", CI_stat["m"], CI_stat["N"], (CI_stat["m"]/CI_stat["N"])*100, CI_stat["LL"]*100, CI_stat["UL"]*100), nrow = 1)
-		dimnames(between_agreement_mat_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Agreement", paste(alpha,"CI (lower)"), paste(alpha,"CI (upper)"))
+		dimnames(between_agreement_mat_reference)[[2]] = c("Operator", "Agreement", "Inspected", "%Aggreement", paste(format(round(alpha, 2), nsmall = 2),"CI (lower)"), paste(format(round(alpha, 2), nsmall = 2),"CI (upper)"))
 
 		kappam_fleiss_all_reference = (modified.kappam.fleiss(between_agreement_response_mat, detail=TRUE, levels = orig_reference_levels))$detail
 		kappam_fleiss_mat_all_reference = cbind(Operator=c("All", rep("",dim(kappam_fleiss_all_reference)[1]-1)), Response = dimnames(kappam_fleiss_all_reference)[[1]], kappam_fleiss_all_reference)
 		rownames(kappam_fleiss_mat_all_reference) = NULL
+		
+		if(length(orig_reference_levels) == 2)
+		{
+			summaryDisagreement_reference = summaryDisagreement(response_list = resp_mat_no_reference, reference = orig_reference[1:part_len])
+		}
 	}
 	
 
@@ -374,9 +483,21 @@ BSkyAttributeAgreementAnalysis <- function(part, operator, response, reference =
 
 	if(reference_given == TRUE)
 	{
-		BSkyFormat(withinAgreement_reference, outputTableRenames = c("Each Appraiser Vs Standard"))
+		BSkyFormat(withinAgreement_reference, outputTableRenames = c("Each Appraiser Agreement Vs Standard"))
+		
+		if(length(disagreement_reference) > 0)  
+		{
+			BSkyFormat(disagreement_reference, outputTableRenames = c("Each Appraiser Disagreement Vs Standard"))
+		}
+		
 		BSkyFormat(kappam_fleiss_mat_reference, outputTableRenames = c("Each Appraiser Vs Standard Fleiss Kappa Statistic"))
-		BSkyFormat(between_agreement_mat_reference, outputTableRenames = c("All Appraisers Vs Standard"))
+		BSkyFormat(between_agreement_mat_reference, outputTableRenames = c("All Appraisers Agreement Vs Standard"))
+		
+		if(length(summaryDisagreement_reference) > 0)  
+		{
+			BSkyFormat(summaryDisagreement_reference, outputTableRenames = c("Summary of Appraiser Disagreement Vs Standard"))
+		}
+		
 		BSkyFormat(kappam_fleiss_mat_all_reference, outputTableRenames = c("All Appraisers Vs Standard Fleiss Kappa Statistic"))
 	}
 	

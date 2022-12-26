@@ -11,7 +11,8 @@ const nav = {
             "icon": "icon-sixsigma",
             "children": [
                 "./gageRnR(MSA)",
-                "./AttributeAgreement"
+                "./AttributeAgreement",
+                "./GageBiasAnalysis"
             ]
         },
         {

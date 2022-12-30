@@ -1,7 +1,7 @@
 
 var localization = {
     en: {
-        title: "Add/Remove Lambda (λ) for a variable with prior Box-Cox transformation",
+        title: "Add/Replace/Remove Lambda (λ) for a variable with prior Box-Cox transformation",
 		navigation: "Add/Remove Lambda",
 		
 		label2: "Select a variable to add/replace/remove Lambda (λ) where Box-Cox transformation was applied previously",
@@ -10,16 +10,17 @@ var localization = {
 		//digits: "Digits - rounds to the specified number of decimal places",
 		
 		selectAddLambdaRad: "Option 1: Add/Replace the Lambda (λ) value if the Box-Cox transformation was applied previously",
-		selectRemoveLambdaRad: "Option 2: Remove the Lambda (λ) value if it was mistakenly added",
+		selectRemoveLambdaRad: "Option 2: Remove the Lambda (λ) value if it was mistakenly added to the variable",
 		
 		lambda: "Specify a Lambda (λ) value in (-2 to 2) to be recorded for the selected variable",
 		
 		help: {
-            title: "Transform non-normal data to normal",
+            title: "TAdd/Replace/Remove Lambda (λ) that was used for prior Box-Cox transformation",
             r_help: "help(boxcox, package = MASS)",
 			body: `
 				<b>Description</b></br>
-				Inspect Lambda (λ) values associated with the variable, if any 
+				This dialog is provided for convenience if the Lambda (λ) associated with the variable needs to be recorded 
+				correctly or adjusted. The correct Lambda (λ) value is important as it will be used if inverse Box-Cox is needed
 				<br/>
 				For the detail help on Box-Cox or Lambda (λ) - use R help(boxcox, package = MASS)
 				<br/>

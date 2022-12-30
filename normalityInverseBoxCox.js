@@ -9,22 +9,22 @@ var localization = {
 		variableSelcted: "Select a variable",
 		//digits: "Digits - rounds to the specified number of decimal places",
 		
-		selectVariableRad: "Option 1: Select a dataset variable to convert back from a prior Box-Cox transformation",
+		selectVariableRad: "Option 1: Select a variable to be converted back from a prior Box-Cox transformation",
 		invBoxCoxColName: "(Optional) Specify a new variable name to store the converted values. Otherwise <variable_Invbcox> will be created",
 		
 		selectNumberRad: "Option 2: Type in a numeric value to be converted back from Box-Cox transformation",
 		invNumber: "Type in the numeric value",
 		
-		lambda: "(Optional) Specify a Lambda (λ) value in (-2 to 2) to be used to convert back from Box-Cox value. Otherwise, if left blank, the Lambda (λ) value wil be used that was used for the original Box-Cox tranformation for the dataset variable selected above",
+		lambda: "(Optional) Specify a Lambda (λ) value in (-2 to 2) to be used to convert back from Box-Cox transformation. Otherwise, if left blank, the Lambda (λ) value wil be used that was used for the original Box-Cox tranformation for the variable selected above",
 		
 		digits: "Digits - rounds to the specified number of decimal places",
 		
 		help: {
-            title: "Transform non-normal data to normal",
+            title: "Transform back (inverse) from a prior Box-Cox transformed value",
             r_help: "help(boxcox, package = MASS)",
 			body: `
 				<b>Description</b></br>
-				Inspect Lambda (λ) values associated with the variable, if any 
+				Transform back (inverse) from a prior Box-Cox transformed value using the specified lambda or the lambda associated with the variable selected 
 				<br/>
 				For the detail help on Box-Cox or Lambda (λ) - use R help(boxcox, package = MASS)
 				<br/>
@@ -87,7 +87,7 @@ origLambda = NULL
 					BSkyFormat("Error: No Lambda value found associated with the variable. You may manually specify a lambda value to be used to convert")
 				}else
 				{
-					BSkyFormat(paste("Original Lambda value:", origLambda, "will be used to convert", '{{selected.variableSelcted | safe}}'))
+					BSkyFormat(paste("Original Lambda value:", round(origLambda, {{selected.digits | safe}}), "will be used to convert", '{{selected.variableSelcted | safe}}'))
 				}
 			{{#else}}
 				origLambda = c({{selected.lambda | safe}})
@@ -100,8 +100,10 @@ origLambda = NULL
 			
 				{{if(options.selected.invBoxCoxColName === "")}}
 					{{dataset.name}}\${{selected.variableSelcted | safe}}_invbcox = round(invbcox_{{selected.variableSelcted | safe}}, {{selected.digits | safe}})
+					attr({{dataset.name}}\${{selected.variableSelcted | safe}}_invbcox, 'bcox_lambda') = NULL
 				{{#else}}
 					{{dataset.name}}\${{selected.invBoxCoxColName | safe}} = round(invbcox_{{selected.variableSelcted | safe}}, {{selected.digits | safe}})
+					attr({{dataset.name}}\${{selected.invBoxCoxColName | safe}}, 'bcox_lambda') = NULL
 				{{/if}}
 				
 				BSkyLoadRefresh('{{dataset.name}}')
@@ -122,7 +124,7 @@ origLambda = NULL
 						BSkyFormat("Error: No Lambda value found associated with the variable selected above. You may manually specify a lambda value to be used to convert")
 					}else
 					{
-						BSkyFormat(paste("Original Lambda value from the variable (", '{{selected.variableSelcted | safe}}', ") :", origLambda, "will be used to convert"))
+						BSkyFormat(paste("Original Lambda value from the variable (", '{{selected.variableSelcted | safe}}', ") :", round(origLambda, {{selected.digits | safe}}), "will be used to convert"))
 					}
 				{{/if}}
 			{{#else}}

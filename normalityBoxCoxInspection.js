@@ -1,20 +1,20 @@
 
 var localization = {
     en: {
-        title: "Inspect variables for Lambda (λ) values with prior Box-Cox transformation",
+        title: "Lambda (λ) value for variables with prior Box-Cox transformation",
 		navigation: "Inspect Lambda",
 		
-		label2: "Select one or more variables to inspect whether Box-Cox transformation was applied and if so, the Lambda (λ) value",
+		label2: "Select one or more variables to check whether Box-Cox transformation was applied and if so, the associated Lambda (λ) value",
 		
 		variablelistSelcted: "Variables to be inspected",
 		//digits: "Digits - rounds to the specified number of decimal places",
 		
 		help: {
-            title: "Transform non-normal data to normal",
+            title: "Check for Lambda (λ) values associated with the slected variable",
             r_help: "help(boxcox, package = MASS)",
 			body: `
 				<b>Description</b></br>
-				Inspect Lambda (λ) values associated with the variable, if any 
+				Check for the associated Lambda (λ) value, if any, for the variables with prior Box-Cox transformation 
 				<br/>
 				For the detail help on Box-Cox or Lambda (λ) - use R help(boxcox, package = MASS)
 				<br/>
@@ -77,7 +77,7 @@ require(MASS)
 		var_list_df = cbind(c({{selected.variablelistSelcted | safe}}), var_list_df)
 		names(var_list_df) = c("Variable", "Lambda")
 		#rownames(var_list_df) = c({{selected.variablelistSelcted | safe}})
-		BSkyFormat(var_list_df, outputTableRenames = "Box-Cox Normality Inspection")
+		BSkyFormat(var_list_df, outputTableRenames = "Box-Cox Lambda Values")
 {{/if}}
 		
 `

@@ -70,8 +70,25 @@ require(MASS)
 
 InverseBoxCoxTransform <- function(response, lambda=0) 
 {
-    if (lambda == 0L) { exp(response) }
-    else { exp(log(1 + lambda * response)/lambda) }
+    if (lambda == 0L) 
+	{ 
+		exp(response)
+	}
+	else if(lambda %in% c(0.5, 0.33, 1, 2, 3))
+	{
+		#response ^ lambda
+		exp(log(response)/lambda)
+	}
+	else if(lambda %in% c(-0.5, -0.33, -1, -2, -3))
+	{
+		#1/(response ^ (-lambda))
+		exp(log(response)/lambda)
+	}
+    else 
+	{ 
+		#(response^lambda - 1) / lambda
+		exp(log(1 + lambda * response)/lambda)
+	}
 }
 
 origLambda = NULL

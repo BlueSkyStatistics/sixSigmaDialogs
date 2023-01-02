@@ -74,6 +74,26 @@ class nonNormalBoxCoxTransform extends baseModal {
 
 require(MASS)
 
+BoxCoxTransform <- function(response, lambda=0) 
+{
+    if (lambda == 0L) 
+	{ 
+		log(response) 
+	}
+	else if(lambda %in% c(0.5, 0.33, 1, 2, 3))
+	{
+		response ^ lambda
+	}
+	else if(lambda %in% c(-0.5, -0.33, -1, -2, -3))
+	{
+		1/(response ^ (-lambda))
+	}
+    else 
+	{ 
+		(response^lambda - 1) / lambda 
+	}
+}
+	
 {{if(options.selected.gpbox1 === "variable")}}
 	{{if(options.selected.variableSelcted === "")}} 
 		BSkyFormat("\nError: A variable must be selected\n")
@@ -101,13 +121,9 @@ require(MASS)
 					BSkyFormat(paste("\nBox-Cox lambda value specified for the transformation is:", round(boxcoxLambda,{{selected.digits | safe}}),"\n"))
 				{{/if}}
 					
-					
-					if(boxcoxLambda !=0 && boxcoxLambda != -999)  
+					if(boxcoxLambda != -999)  
 					{
-						bcox_{{selected.variableSelcted | safe}} <- (with({{dataset.name}}, c({{selected.variableSelcted | safe}})) ^ boxcoxLambda - 1) / boxcoxLambda
-					}else if(boxcoxLambda ==0)
-					{
-						bcox_{{selected.variableSelcted | safe}} <- with({{dataset.name}}, log(c({{selected.variableSelcted | safe}})))
+						bcox_{{selected.variableSelcted | safe}} = round(BoxCoxTransform(response = {{dataset.name}}\${{selected.variableSelcted | safe}}, lambda = boxcoxLambda), {{selected.digits | safe}})
 					}
 					
 					if(length(bcox_{{selected.variableSelcted | safe}}) > 0 && !all(is.na(bcox_{{selected.variableSelcted | safe}})))
@@ -170,12 +186,9 @@ require(MASS)
 				
 					BSkyFormat(paste("\nBoxcox lambda value chosen for the transformation is", round(boxcoxLambda,{{selected.digits | safe}}),"\n"))
 					
-					if(boxcoxLambda != 0 && boxcoxLambda != -999)
+					if(boxcoxLambda != -999)  
 					{
-						bcox_temp_vector_values <- round(((temp_vector_values ^ boxcoxLambda - 1) / boxcoxLambda), {{selected.digits | safe}})
-					}else if(boxcoxLambda == 0)
-					{
-						bcox_temp_vector_values <- round(log(temp_vector_values), {{selected.digits | safe}})
+						bcox_temp_vector_values = round(BoxCoxTransform(response = temp_vector_values, lambda = boxcoxLambda), {{selected.digits | safe}})
 					}
 					
 					if(length(bcox_temp_vector_values) > 0 && !all(is.na(bcox_temp_vector_values)))

@@ -15,12 +15,13 @@ var localization = {
 		lambda: "Specify a Lambda (λ) value in (-2 to 2) to be recorded for the selected variable",
 		
 		help: {
-            title: "TAdd/Replace/Remove Lambda (λ) that was used for prior Box-Cox transformation",
+            title: "Add/Replace/Remove Lambda (λ) that was used for prior Box-Cox transformation",
             r_help: "help(boxcox, package = MASS)",
 			body: `
 				<b>Description</b></br>
 				This dialog is provided for convenience if the Lambda (λ) associated with the variable needs to be recorded 
 				correctly or adjusted. The correct Lambda (λ) value is important as it will be used if inverse Box-Cox is needed
+				<br/>
 				<br/>
 				For the detail help on Box-Cox or Lambda (λ) - use R help(boxcox, package = MASS)
 				<br/>

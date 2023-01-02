@@ -32,6 +32,7 @@ var localization = {
 				<br/>
 				Box-Cox transformation cannot be performed on negaive values
 				<br/>
+				<br/>
 				For the detail help - use R help(boxcox, package = MASS)
 				<br/>
 				<br/>

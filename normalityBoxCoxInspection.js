@@ -10,11 +10,12 @@ var localization = {
 		//digits: "Digits - rounds to the specified number of decimal places",
 		
 		help: {
-            title: "Check for Lambda (λ) values associated with the slected variable",
+            title: "Check for Lambda (λ) value associated with the slected variable",
             r_help: "help(boxcox, package = MASS)",
 			body: `
 				<b>Description</b></br>
-				Check for the associated Lambda (λ) value, if any, for the variables with prior Box-Cox transformation 
+				Check for the associated Lambda (λ) value, if any, for the selected variables with prior Box-Cox transformation 
+				<br/>
 				<br/>
 				For the detail help on Box-Cox or Lambda (λ) - use R help(boxcox, package = MASS)
 				<br/>

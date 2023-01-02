@@ -26,6 +26,7 @@ var localization = {
 				<b>Description</b></br>
 				Transform back (inverse) from a prior Box-Cox transformed value using the specified lambda or the lambda associated with the variable selected 
 				<br/>
+				<br/>
 				For the detail help on Box-Cox or Lambda (λ) - use R help(boxcox, package = MASS)
 				<br/>
 				<br/>

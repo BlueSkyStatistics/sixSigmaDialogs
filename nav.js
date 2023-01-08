@@ -35,17 +35,8 @@ const nav = {
         },
         "./cusumChart",	
         "./ewmaChart",
-        "./mqccChart",
-        {
-            "name": "Box-Cox",
-            "icon": "icon-sixsigma",
-            "children": [
-                "./normalityBoxCoxTransform",
-                "./normalityBoxCoxInspection",
-                "./normalityBoxCoxAddRemoveLambda",
-                "./normalityInverseBoxCox"
-            ]
-        },        			
+        "./mqccChart"
+      
     ]
 }
 

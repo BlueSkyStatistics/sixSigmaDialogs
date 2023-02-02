@@ -31,13 +31,13 @@ var localization = {
 		
 		help: {
             title: "EWMA chart",
-            r_help: "help(qcc, package = qcc)",
+            r_help: "help(ewma, package = qcc)",
 			body: `
 				<b>Description</b></br>
 				qcc function to to perform statistical quality control and to plot Shewhart charts
 				<br/>
 				<br/>
-				For the detail help - use R help(qcc, package = qcc)
+				For the detail help - use R help(ewma, package = qcc) and help(qcc, package = qcc)
 				<br/>
 				<br/>
 				To try this, you may load the dataset called pistonrings from the qcc package with Load Dataset menu by selecting qcc package and then select pistonrings dataset
@@ -64,61 +64,87 @@ class ewmaChart extends baseModal {
             RCode:`
 require(qcc)
 
-#EWMA Chart
-
-
+#chart type EWMA
+qccEwma = NULL 	
 selectedData = NULL
 
-if(c('{{selected.gpbox1 | safe}}') == "variable"){
-	
-	if(trimws('{{selected.groupingVariable | safe}}') != "")
-	{
-		selectedData = with({{dataset.name}}, qcc.groups(c({{selected.variableSelcted | safe}}), c({{selected.groupingVariable | safe}})))
-	}
-	
-	if({{selected.displayGroupsChk | safe}} && !is.null(selectedData))
-	{
-		{{selected.variableSelcted | safe}}Gpd = as.data.frame(selectedData)
-		#BSkyFormat({{selected.variableSelcted | safe}}, outputTableRenames = paste("Grouping generated for {{selected.variableSelcted | safe}} by {{selected.groupingVariable | safe}}"))
-		BSkyLoadRefresh('{{selected.variableSelcted | safe}}Gpd')
-	}
-	
-	data_name = '{{selected.variableSelcted | safe}}'
-	
-}else
-{
-	if(length(c({{selected.variablelistSelcted | safe}})) == 0){
-		selectedData = {{dataset.name}}[]
-	}else{
-		selectedData = {{dataset.name}}[, c({{selected.variablelistSelcted | safe}})]
-	}
-	
-	data_name = '{{dataset.name}}'
-}
 
-
-cat("Charts selected: EWMA")
-
-
-#chart type EWMA
-	qccEwma = NULL 
-	
-	
-	if(!is.null(selectedData)) {
-		if(trimws('{{selected.rowsTobeUsedAsNewData | safe}}') == "" || trimws('{{selected.rowsTobeUsed | safe}}') ==""){
-			BSkyFormat(paste("\nEWMA chart", "for", data_name, "without new data"))
-			qccEwma = qcc::ewma(data = selectedData[{{selected.rowsTobeUsed | safe}}], nsigmas = c({{selected.nsigmas | safe}}), lambda = c({{selected.lambda | safe}})) 
-		}
-		else if(trimws('{{selected.rowsTobeUsed | safe}}') != "" ){
-			BSkyFormat(paste("\nEWMA chart", "for", data_name,  "with new data"))
-			qccEwma = qcc::ewma(data = selectedData[{{selected.rowsTobeUsed | safe}}], newdata=selectedData[c({{selected.rowsTobeUsedAsNewData | safe}}),], nsigmas = c({{selected.nsigmas | safe}}), lambda = c({{selected.lambda | safe}})) 
-		}
+{{if(options.selected.gpbox1  === "variable")}}
+	{{if(options.selected.variableSelcted  !== "")}}
+		{{if(options.selected.groupingVariable  !== "")}}
+			selectedData = with({{dataset.name}}, qcc.groups(c({{selected.variableSelcted | safe}}), c({{selected.groupingVariable | safe}})))
+		{{#else}}
+			selectedData = with({{dataset.name}}, c({{selected.variableSelcted | safe}}))
+		{{/if}}
 		
-		if({{selected.summaryPrintChk | safe}} && !is.null(qccEwma)){
-			summary(qccEwma)
-		}
+		{{if(options.selected.displayGroupsChk  === "TRUE")}}
+			if(!is.null(selectedData))
+			{
+				{{selected.variableSelcted | safe}}Gpd = as.data.frame(selectedData)
+				#BSkyFormat({{selected.variableSelcted | safe}}, outputTableRenames = paste("Grouping generated for {{selected.variableSelcted | safe}} by {{selected.groupingVariable | safe}}"))
+				BSkyLoadRefresh('{{selected.variableSelcted | safe}}Gpd')
+			}
+		{{/if}}
+		
+		data_name = '{{selected.variableSelcted | safe}}'
+		
+	{{#else}}
+		BSkyFormat("A variable must be selected")
+	{{/if}}
+{{#else}}
+	{{if(options.selected.variablelistSelcted  === "")}}
+		selectedData = {{dataset.name}}[]
+	{{#else}}
+		selectedData = {{dataset.name}}[, c({{selected.variablelistSelcted | safe}})]
+	{{/if}}
+	data_name = '{{dataset.name}}'
+{{/if}}
+
+	if(!is.null(selectedData)) {
+		{{if(options.selected.groupingVariable  !== ""|| options.selected.gpbox1  !== "variable")}}
+			{{if(options.selected.rowsTobeUsedAsNewData  === "" || options.selected.rowsTobeUsed  === "")}}
+				BSkyFormat(paste("\nEWMA chart", "for", data_name, "without new data"))
+				qccEwma = qcc::ewma(data = selectedData[{{selected.rowsTobeUsed | safe}},], 
+									data.name = paste(data_name, '[{{selected.rowsTobeUsed | safe}},]', sep=""),
+									nsigmas = c({{selected.nsigmas | safe}}), 
+									lambda = c({{selected.lambda | safe}})) 
+			{{#else}}
+				{{if(options.selected.rowsTobeUsed  !== "")}}
+					BSkyFormat(paste("\nEWMA chart", "for", data_name,  "with new data"))
+					qccEwma = qcc::ewma(data = selectedData[{{selected.rowsTobeUsed | safe}},], 
+										data.name = paste(data_name, '[{{selected.rowsTobeUsed | safe}},]', sep=""),
+										newdata=selectedData[c({{selected.rowsTobeUsedAsNewData | safe}}),], 
+										nsigmas = c({{selected.nsigmas | safe}}), 
+										lambda = c({{selected.lambda | safe}})) 
+				{{/if}}
+			{{/if}}
+		{{#else}}	
+			{{if(options.selected.rowsTobeUsedAsNewData  === "" || options.selected.rowsTobeUsed  === "")}}
+				BSkyFormat(paste("\nEWMA chart", "for", data_name, "without new data"))
+				qccEwma = qcc::ewma(data = selectedData[{{selected.rowsTobeUsed | safe}}], 
+									data.name = paste(data_name, '[{{selected.rowsTobeUsed | safe}}]', sep=""),
+									nsigmas = c({{selected.nsigmas | safe}}), 
+									lambda = c({{selected.lambda | safe}})) 
+			{{#else}}
+				{{if(options.selected.rowsTobeUsed  !== "")}}
+					BSkyFormat(paste("\nEWMA chart", "for", data_name,  "with new data"))
+					qccEwma = qcc::ewma(data = selectedData[{{selected.rowsTobeUsed | safe}}], 
+										data.name = paste(data_name, '[{{selected.rowsTobeUsed | safe}}]', sep=""),
+										newdata=selectedData[c({{selected.rowsTobeUsedAsNewData | safe}})], 
+										nsigmas = c({{selected.nsigmas | safe}}), 
+										lambda = c({{selected.lambda | safe}})) 
+				{{/if}}
+			{{/if}}
+		{{/if}}
 	}
 	
+	
+{{if(options.selected.summaryPrintChk  === "TRUE")}}
+	if(!is.null(qccEwma)){
+		summary(qccEwma)
+	}
+{{/if}}
+
 `
         };
         var objects = {
@@ -246,7 +272,7 @@ cat("Charts selected: EWMA")
                     extraction: "TextAsIs",
 					allow_spaces:true,
                     //value: "",
-					wrapped: 'c(%val%) , ',
+					wrapped: 'c(%val%)',
                 })
             },
 			rowsTobeUsedAsNewData: {

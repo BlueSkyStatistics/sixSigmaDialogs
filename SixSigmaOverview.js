@@ -1,12 +1,10 @@
 var localization = {
     en: {
-        title: "A few reference tutorials found on the internet for SixSigma and QCC functionality that you may find helpful",
+        title: "Six Sigma reference tutorial by Thomas Pyzdek (Pyzdek Institute)",
         navigation: "SixSigma Overview",
-		lbl1: "QQQ",
+		lbl1: "QQQ", 
     }
 }
-
-
 
 class SixSigmaOverview extends baseModal {
     constructor() {

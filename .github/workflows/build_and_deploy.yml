@@ -1,0 +1,124 @@
+name: Buld and deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_github:
+        description: 'Make a github release'
+        required: false
+        type: boolean
+        default: true
+      release_firebase:
+        description: 'Make a firebase release'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  MODULE_NAME_KEY: 'name'
+  MODULE_VERSION_KEY: 'version'
+  MODULE_SUBSCRIPTION_KEY: 'subscription'
+  MODULE_DEFAULT_SUBSCRIPTION: 'public'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.0.0
+
+      - name: Load Module Meta
+        id: module_meta
+        run: |
+          export MODULE_NAME=$(python3 -c "import json; print(json.load(open('package.json', 'r'))['${{ env.MODULE_NAME_KEY }}'].split('/')[-1])")
+          echo "MODULE_NAME=$MODULE_NAME" >> "$GITHUB_OUTPUT"
+          
+          export MODULE_VERSION=$(python3 -c "import json; print(json.load(open('package.json', 'r'))['${{ env.MODULE_VERSION_KEY }}'])")
+          echo "MODULE_VERSION=$MODULE_VERSION" >> "$GITHUB_OUTPUT"
+          
+          export MODULE_SUBSCRIPTION=$(python3 -c "import json; print(json.load(open('package.json', 'r')).get('${{ env.MODULE_SUBSCRIPTION_KEY }}', '${{ env.MODULE_DEFAULT_SUBSCRIPTION }}'))")
+          echo "MODULE_SUBSCRIPTION=$MODULE_SUBSCRIPTION" >> "$GITHUB_OUTPUT"
+          
+
+      - name: Node 16 setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Pack .asar
+        run: |
+          npm i
+          npm i -g @electron/asar
+          asar pack . "${{ steps.module_meta.outputs.MODULE_NAME }}.asar"
+          
+      - name: Upload artifact
+        # https://github.com/actions/upload-artifact
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: "${{ steps.module_meta.outputs.MODULE_NAME }}_${{ steps.module_meta.outputs.MODULE_VERSION }}.asar"
+          path: "${{ steps.module_meta.outputs.MODULE_NAME }}.asar"
+          retention-days: 1
+          if-no-files-found: error
+
+    outputs:
+      MODULE_NAME: ${{ steps.module_meta.outputs.MODULE_NAME }}
+      MODULE_VERSION: ${{ steps.module_meta.outputs.MODULE_VERSION }}
+      MODULE_SUBSCRIPTION: ${{ steps.module_meta.outputs.MODULE_SUBSCRIPTION }}
+      ARTIFACT_NAME: "${{ steps.module_meta.outputs.MODULE_NAME }}_${{ steps.module_meta.outputs.MODULE_VERSION }}.asar"
+
+
+  release_github:
+     if: inputs.release_github
+     needs: build
+     runs-on: ubuntu-latest
+     steps:
+       - name: Download Artifact
+         uses: actions/download-artifact@v3.0.2
+         with:
+           name: ${{ needs.build.outputs.ARTIFACT_NAME }}
+            
+       - name: GH Release
+         uses: softprops/action-gh-release@v1
+         with:
+           tag_name: ${{ needs.build.outputs.MODULE_VERSION }}
+           files: "${{ needs.build.outputs.MODULE_NAME }}.asar"
+           generate_release_notes: true
+
+  release_firebase:
+    if: inputs.release_firebase
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3.0.2
+        with:
+          name: ${{ needs.build.outputs.ARTIFACT_NAME }}
+
+      - name: Prepare upload.py
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install firebase_admin
+          cat > upload.py << EOF
+          import sys, json
+          from firebase_admin import credentials, initialize_app, storage
+          _, FIREBASE_CREDS, MODULE_NAME, FOLDER_NAME, VERSION, *_ = sys.argv
+          FILE_NAME = f'{MODULE_NAME}.asar'
+          print('FIREBASE_CREDS', FIREBASE_CREDS)
+          print('MODULE_NAME', MODULE_NAME)
+          print('FILE_NAME', FILE_NAME)
+          print('FOLDER_NAME', FOLDER_NAME)
+          print('VERSION', VERSION)
+          service_account = json.loads(FIREBASE_CREDS)
+          BUCKET_NAME = f'{service_account["project_id"]}.appspot.com'
+          print('BUCKET_NAME', BUCKET_NAME)
+          cred = credentials.Certificate(service_account)
+          initialize_app(cred)
+          bucket = storage.bucket(BUCKET_NAME)
+          blob = bucket.blob(f'{FOLDER_NAME}/{MODULE_NAME}/{VERSION}/{FILE_NAME}')
+          blob.upload_from_filename(FILE_NAME)
+          print('Done', blob.public_url)
+          EOF
+          echo "upload.py ready"
+
+      - name: Upload
+        run: python3 upload.py '${{ secrets.FIREBASE_CREDS }}' '${{ needs.build.outputs.MODULE_NAME }}' '${{ needs.build.outputs.MODULE_SUBSCRIPTION }}' '${{ needs.build.outputs.MODULE_VERSION }}'
